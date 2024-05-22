@@ -1,0 +1,5 @@
+outs:
+- md5: 61351cd148d03063c145c2073b30b61d
+  size: 72
+  hash: md5
+  path: toy-data.txt
