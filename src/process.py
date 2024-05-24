@@ -1,12 +1,18 @@
 from pathlib import Path
 
 import pandas as pd
+import yaml
 from sklearn.model_selection import train_test_split
 
 DATA_FOLDER = Path("data/")
+PARAMS_FILE = Path("params.yaml")
 
 
 def main(data_folder: Path, dest_folder: Path) -> None:
+    # Load parameters from params.yaml
+    with open(PARAMS_FILE, "r") as params_file:
+        params = yaml.safe_load(params_file)["process"]
+
     # Load data
     dataset = pd.read_csv(data_folder / "penguins.csv")
 
@@ -15,7 +21,10 @@ def main(data_folder: Path, dest_folder: Path) -> None:
 
     # Split into train and test datasets
     dataset_train, dataset_test = train_test_split(
-        dataset, train_size=0.8, shuffle=True, random_state=10
+        dataset,
+        train_size=params["train_size"],
+        shuffle=True,
+        random_state=params["random_state"],
     )
 
     # Save cleaned datasets
