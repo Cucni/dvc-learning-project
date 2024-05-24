@@ -36,3 +36,18 @@ dvc push -r local
 git add .dvc/config
 git commit
 ```
+
+**Day 2**
+```
+# Track penguin dataset
+dvc add data/penguins.csv
+git add data/penguins.csv.dvc data/.gitignore
+git commit
+
+# Implement pipeline and run it
+(write pipeline code)
+python src/process.py
+python src/create_features.py
+python src/train.py
+python src/evaluate.py
+```

@@ -34,3 +34,14 @@ The actual dataset is then stored in a cache, which is a folder in the local clo
 To obtain a different copy of the dataset, travel to another git commit and run `dvc checkout <hash>`. This will fetch the version of the dataset corresponding to the hash written in the `.dvc` file from the cache.
 
 The cache can be pushed and pulled to/from a remote location, which can be a cloud storage or a local filesystem. Remotes are managed with `dvc remote`. When we checkout a commit that references a different version of a dataset (via the hash), and we run `dvc checkout`, DVC tries to pull that version from the cache, but it is not guaranteed to be there. In this case, we can fetch the desired dataset version from the remote with a `dvc pull`. This pull/push mechanism allows us to avoid storing all the data versions locally: the full dataset is pulled from the remote to the cache when it is needed.
+
+## ML Pipelines
+
+DVC also has capabilities for managing machine learning pipelines. For the sake of this project, we will implement a simple pipeline that trains a classification model on the penguins dataset. The [Palmer penguin dataset](https://allisonhorst.github.io/palmerpenguins/) is a dataset with data about penguins (body features, location, sex) often used in data exploration and visualization and ML examples. In our case, we will use the penguins dataset to train a K-Nearest Neighbors classifier to predict the sex of a penguin given the other information at our disposal.
+
+To implement the ML pipeline in a way that can be managed with DVC, we follow these steps:
+* Obtain the dataset and put it under data version control with `dvc add` (and committing).
+* Write separate scripts for processing the data, creating new features, training the model and evaluating the model.
+* Refactor the pipeline such that it is parametrized according to a `params.yaml` file which contains the parameters that control the pipeline execution: data paths, model paths, parameters for data processing and feature creation, model hyperparameters, etc.
+
+This provides the basic structure that will enable us to use DVC's functionalities to manage the pipeline.
