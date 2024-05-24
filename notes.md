@@ -33,4 +33,4 @@ The actual dataset is then stored in a cache, which is a folder in the local clo
 
 To obtain a different copy of the dataset, travel to another git commit and run `dvc checkout <hash>`. This will fetch the version of the dataset corresponding to the hash written in the `.dvc` file from the cache.
 
-The cache can be pushed and pulled to/from a remote location, which can be a cloud storage or a local filesystem.
+The cache can be pushed and pulled to/from a remote location, which can be a cloud storage or a local filesystem. Remotes are managed with `dvc remote`. When we checkout a commit that references a different version of a dataset (via the hash), and we run `dvc checkout`, DVC tries to pull that version from the cache, but it is not guaranteed to be there. In this case, we can fetch the desired dataset version from the remote with a `dvc pull`. This pull/push mechanism allows us to avoid storing all the data versions locally: the full dataset is pulled from the remote to the cache when it is needed.
