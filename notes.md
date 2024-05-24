@@ -42,6 +42,15 @@ DVC also has capabilities for managing machine learning pipelines. For the sake 
 To implement the ML pipeline in a way that can be managed with DVC, we follow these steps:
 * Obtain the dataset and put it under data version control with `dvc add` (and committing).
 * Write separate scripts for processing the data, creating new features, training the model and evaluating the model.
-* Refactor the pipeline such that it is parametrized according to a `params.yaml` file which contains the parameters that control the pipeline execution: data paths, model paths, parameters for data processing and feature creation, model hyperparameters, etc.
+* Refactor the pipeline such that it is parametrized according to a `params.yaml` file which contains the parameters that control the pipeline execution: data paths, model paths, parameters for data processing and feature creation, model hyperparameters, etc. Note that the `params.yaml` file is versioned with git.
 
 This provides the basic structure that will enable us to use DVC's functionalities to manage the pipeline.
+
+A good example of an implementation that follows can be found in the [official DVC example](https://github.com/iterative/example-get-started). Note how it touches on these points:
+* structure of the file `params.yaml` and how it is accessed in the pipeline
+* separation of the pipeline in the 4 separate steps
+* control of pipeline parameters and execution using the parameters externalized in `params.yaml`
+* reproduction of the processing steps executed in the training dataset also on the test dataset by using already fitted transformers
+* persistence of processed data and serialized models
+
+A shorter and simpler example can be found in the [project repo](https://github.com/AntonisCSt/POW_DVC/tree/main) used as reference during the DataTalks.Club activity, although this example does not address all points above equally well.
