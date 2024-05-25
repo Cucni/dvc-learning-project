@@ -29,9 +29,9 @@ DVC uses this idea in a more general sense: data is stored in a "remote location
 
 To track a dataset, we target it with the command `dvc add <path/to/dataset>`. This adds the dataset to a `.gitignore`, and creates a file `<path/to/dataset>.dvc` which is the footprint of the dataset. It contains a `md5` hash of the dataset and other metadata. The `<path/to/dataset>.dvc` file must then be added to version control with git, because it will be tracked this way.
 
-The actual dataset is then stored in a cache, which is a folder in the local clone of the repo. This is not versioned control. Every time the dataset changes and is added to tracking with `dvc add`, the `.dvc` file is updated (and should be added to git), and a new copy of the dataset is made in the cache.
+The actual dataset is then stored in a cache, which is a folder in the local clone of the repo. This is not under version control. Every time the dataset changes and is added to tracking with `dvc add`, the `.dvc` file is updated (and should be committed to git), and a new copy of the dataset is made in the cache.
 
-To obtain a different copy of the dataset, travel to another git commit and run `dvc checkout <hash>`. This will fetch the version of the dataset corresponding to the hash written in the `.dvc` file from the cache.
+To obtain a different copy of the dataset, travel to another git commit and run `dvc checkout <hash>` (where `<hash>` the is commit hash in the git log). This will fetch from the cache the version of the dataset corresponding to the hash written in the `.dvc` file.
 
 The cache can be pushed and pulled to/from a remote location, which can be a cloud storage or a local filesystem. Remotes are managed with `dvc remote`. When we checkout a commit that references a different version of a dataset (via the hash), and we run `dvc checkout`, DVC tries to pull that version from the cache, but it is not guaranteed to be there. In this case, we can fetch the desired dataset version from the remote with a `dvc pull`. This pull/push mechanism allows us to avoid storing all the data versions locally: the full dataset is pulled from the remote to the cache when it is needed.
 
