@@ -1,0 +1,35 @@
+stages:
+  process:
+    cmd: python src/process.py
+    deps:
+    - data/penguins.csv
+    - src/process.py
+    params:
+    - process.random_state
+    - process.train_size
+    outs:
+    - data/processed/penguins_test.csv
+    - data/processed/penguins_train.csv
+  featurize:
+    cmd: python src/create_features.py
+    deps:
+    - data/processed/penguins_test.csv
+    - data/processed/penguins_train.csv
+    - src/create_features.py
+    outs:
+    - artifacts/feature_encoder.joblib
+    - artifacts/label_encoder.joblib
+    - data/processed/test_processed.csv
+    - data/processed/train_processed.csv
+  train:
+    cmd: python src/train.py
+    deps:
+    - data/processed/test_processed.csv
+    - data/processed/train_processed.csv
+    - src/train.py
+    params:
+    - train.n_neighbors
+    - train.test_dataset_name
+    - train.train_dataset_name
+    outs:
+    - artifacts/model.joblib
