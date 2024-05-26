@@ -35,6 +35,22 @@ To obtain a different copy of the dataset, travel to another git commit and run 
 
 The cache can be pushed and pulled to/from a remote location, which can be a cloud storage or a local filesystem. Remotes are managed with `dvc remote`. When we checkout a commit that references a different version of a dataset (via the hash), and we run `dvc checkout`, DVC tries to pull that version from the cache, but it is not guaranteed to be there. In this case, we can fetch the desired dataset version from the remote with a `dvc pull`. This pull/push mechanism allows us to avoid storing all the data versions locally: the full dataset is pulled from the remote to the cache when it is needed.
 
+Summary:
+* data is not stored in the git repository
+* but dvc creates a ".dvc" file which is stored in the git repository
+* the ".dvc" file is contains an identifier for a _version_ of the data so that we can recover that version if needed
+* the .dvc file establishes a connection to the data (and its versions), but the actual data is not tracked
+* data is generally stored in a remote storage, which makes up a dvc repository
+* we can push/pull to the remote storage: pushing moves data to the remote storage, pull obtains data from there. DVC helps with these operations by managing a local cache.
+
+Remark: a DVC remote acts as a Git remote (such as GitHub) for cached data.
+
+They serve the purpose of:
+* centralize data storage, helping sharing and collaboration
+* synchronize files
+* back up data (and other files) to avoid storing it locally
+
+
 ## ML Pipelines
 
 DVC also has capabilities for managing machine learning pipelines. For the sake of this project, we will implement a simple pipeline that trains a classification model on the penguins dataset. The [Palmer penguin dataset](https://allisonhorst.github.io/palmerpenguins/) is a dataset with data about penguins (body features, location, sex) often used in data exploration and visualization and ML examples. In our case, we will use the penguins dataset to train a K-Nearest Neighbors classifier to predict the sex of a penguin given the other information at our disposal.
@@ -54,3 +70,16 @@ A good example of an implementation that follows can be found in the [official D
 * persistence of processed data and serialized models
 
 A shorter and simpler example can be found in the [project repo](https://github.com/AntonisCSt/POW_DVC/tree/main) used as reference during the DataTalks.Club activity, although this example does not address all points above equally well.
+
+## More on DVC remotes
+
+The main feature of DVC is to efficiently coordinate remote storage for data with version control in git, so it is naturally equipped with many features that make the life easier.
+
+* It is possible to use DVC as an interface to obtain data from a "DVC data registry", regardless of the protocol. This is done with `dvc get`. This works well as an abstraction layer, so that you can simply use the dvc CLI instead of `wget`, `curl`, proprietary tools, GUIs, etc.
+* It is possible to add "private" remotes, i.e. remotes whose configuration is not put under version control with git but lives solely on our local machine. This is done by using the flag `--local` to the various commands, such as `dvc remote add --local <name> <url>`. In this case "local" does not mean that the remote is locally stored, but that it is configured exclusively on the local machine. The use case for this is when we do not want to share the configuration of the remote (or its authentication methods).
+* DVC can track files from the web, and can automatically determine whether they have changed and it then necessary to download them again. This is achieved with the command `dvc import-url`. After adding a file in this way, DVC will be able to check if it has changed by checking the result with a simple HTTP request (without downloading the file).
+* It is possible to track a file in a remote storage without ever downloading it. This is done with the commands `dvc import-url --no-download` and `dvc import-url --to-remote`. The use case for this is when the dataset is exceedingly large (and larger than the local machine could handle with ease) but we are still interested in tracking it. For example, this dataset could be part of our model training pipeline, which however happens entirely in cloud resources.
+* Some remote storages have built-in versioning, for example AWS S3 and Azure Blobs provide this feature. In these cases, it is possible to instruct DVC to rely on the versioning mechanism of the remote storage. This is achieved with the command `dvc import-url --version-aware`. This makes it possible to track the data versioning in the git repo, but without having to download the data or add another versioning layer.
+
+
+Note that the functionalities of `import-url` have two applications: one is to work with remotes, the other is to manage "external data dependencies", which means files from external locations that we want to track in the repository. While the pull mechanism may be similar for the two use cases, we never push to external data dependencies that are not remote storages.
