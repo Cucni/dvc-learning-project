@@ -57,6 +57,8 @@ They serve the purpose of:
 
 ## ML Pipelines
 
+### Prerequisites
+
 DVC also has capabilities for managing machine learning pipelines. For the sake of this project, we will implement a simple pipeline that trains a classification model on the penguins dataset. The [Palmer penguin dataset](https://allisonhorst.github.io/palmerpenguins/) is a dataset with data about penguins (body features, location, sex) often used in data exploration and visualization and ML examples. In our case, we will use the penguins dataset to train a K-Nearest Neighbors classifier to predict the sex of a penguin given the other information at our disposal.
 
 To implement the ML pipeline in a way that can be managed with DVC, we follow these steps:
@@ -74,6 +76,40 @@ A good example of an implementation that follows can be found in the [official D
 * persistence of processed data and serialized models
 
 A shorter and simpler example can be found in the [project repo](https://github.com/AntonisCSt/POW_DVC/tree/main) used as reference during the DataTalks.Club activity, although this example does not address all points above equally well.
+
+### DVC Pipelines
+
+As said, DVC has capatibilities for managing pipelines. More precisely, it can acts as a sort of "make" for machine learning: it can identify pipeline inputs and outputs, run them automatically and sequentially, compare versions of dependencies and outputs in order to run only what needed, cache and compare results in order to avoid repeating the same processes twice, and "freeze" a snapshot of the whole pipeline. The benefits of these feature rely on a higher pipeline reproducibility and automation.
+
+Pipelines are treated as a set of _stages_. Stages are defined by the user, but in general a good mental framework is to split a pipeline into four "main" stages: data processing, feature creation, model training and model evaluation. Of course according to the use case we can have more or less stages, some of these can be repeated multiple times (for example if we are training two models), etc. However this 4-stages-framework can be easily use to understand how DVC works.
+
+A stage is composed of:
+* a command to run
+* dependencies: inputs and other files that the stage depends on. This generally includes data as input, but we can also have a serialized model as dependency. Typically one includes the source code of the command as a dependency too, see later for the motivation.
+* outputs: this is what the stage creates, and of course it can go from no outputs (e.g. we evaluate the model and print the accuracy) to multiple outputs.
+* parameters: these control the execution of the stage and are generally obtained from the file `params.yaml`.
+
+Stages are created via the command `dvc stage add -n <name> -d <dependency> -o <output> -p <parameter> <command>`. Their definition is then saved into the file `dvc.yaml`, which can also be edited manually. This file should be versioned with git!
+
+Stages are run to generate their outputs. When we ask DVC to run a stage, it will check all its dependencies: if the stage was already ran and no dependency or parameter has changed, then it will be skipped because it will produce the same output and we already have that. If any dependency or parameter has changed, then the stage will be run and the outputs overwritten. In this way DVC can make sure to only run stages when it is necessary. Remark: this is why we include the source code as a dependency, because if _that_ changes then we surely want to run the stage! Otherwise, we may risk that we change the stage implementation, but no input or parameter has changed so DVC think that the stage can be skipped.
+
+To chain stages together in pipelines, we simply use the output of Stage 1 as a dependency of Stage 2. DVC then automatically recognizes that Stage 2 depends on Stage 1, hence when we ask to run the entire pipeline it will first run Stage 1 and after that it will run Stage 2. It will also smartly manage their dependencies and outputs to only run what is needed:
+* if a dependency of Stage 1 has changed, then everything will be run again
+* if a dependency of Stage 2 has changed, but no dependency of Stage 1 has changed, then we can skip Stage 1 and use its already computed output to feed Stage 2, which needs to be run again
+
+Pipelines need not be linear, but they are viewed as graphs. They are implemented as DAG, i.e. direct acyclic graphs. As long as the definition of a DAG is met, then it is a valid pipeline.
+
+Pipelines are run with the command `dvc repro`. Their definition as graphs of stages can be viewed in `dvc.yaml`, and graphically can be generated with `dvc dag`.
+
+DVC understands if dependencies and outputs have changed via a "lockfile for executions", `dvc.lock`, which captures the results of the execution/reproduction. Whenever the pipeline is run with `dvc repro`, the file `dvc.lock` is written (or updated) with the hashes of all the dependencies, parameters and outputs of the pipeline. It then becomes easy for DVC to understand if something has changed by comparing the hashes. The file `dvc.lock` is then specific of a single reproduction, and it is good practice to version it with git, so that the state of the pipeline can be tracked.
+
+All of this affords the following:
+* a pipeline can be reproduced with a single command (`dvc repro`) that runs the various stages in the correct order
+* when running a pipeline, only the necessary stages are run, to avoid unnecessary reruns
+* the state of a pipeline (dependencies, outputs, parameters) is captured in `dvc.lock` so that it can be easily verified and version tracked
+* the definition of the stages and the snapshot of their results via the files `dvc.yaml` and `dvc.lock` makes a pipeline reproducible, since we have execution instructions, and a reference to compare the entire state to
+* the specification of the stages and their details in `dvc.yaml` makes it easy to collaborate, as there is a clear and shared agreement on how to run it
+
 
 ## More on DVC remotes
 

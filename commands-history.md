@@ -118,4 +118,36 @@ dvc status
 dvc checkout
 dvc status
 git commit
- ```
+```
+
+**Day 4**
+```
+# Add a "process" stage in the DVC pipeline, check its specification and the dag
+dvc stage add -n process -d src/process.py -d data/penguins.csv -p process.train_size,process.random_state -o data/processed/penguins_train.csv -o data/processed/penguins_test.csv python src/process.py
+bat dvc.yaml
+dvc dag
+
+# Add a "featurize" and a "train" stage in the DVC pipeline, check the updated stages specifications and the updated dag. Then commit the pipeline implementation
+bat params.yaml
+dvc stage add -n featurize -d data/processed/penguins_train.csv -d data/processed/penguins_test.csv -o data/processed/train_processed.csv -d src/create_features.py -o data/processed/test_processed.csv -o artifacts/feature_encoder.joblib -o artifacts/label_encoder.joblib python src/create_features.py
+bat dvc.yaml
+dvc stage add -n train -p train.n_neighbors,train.train_dataset_name,train.test_dataset_name -d src/train.py -d data/processed/train_processed.csv -d data/processed/test_processed.csv -o artifacts/model.joblib python src/train.py
+bat dvc.yaml
+dvc dag
+git add dvc.yaml
+git commit
+
+# Reproduce the pipeline, check the execution snapshot and commit it
+dvc repro
+bat dvc.lock
+git add dvc.lock
+git commit
+
+# Change a parameter, check the status and reproduce the pipeline to observe what is skipped and what is not.
+vim params.yaml
+dvc status
+dvc repro
+vim params.yaml
+dvc status
+dvc repro
+```
