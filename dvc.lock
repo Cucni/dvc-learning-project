@@ -1,0 +1,83 @@
+schema: '2.0'
+stages:
+  process:
+    cmd: python src/process.py
+    deps:
+    - path: data/penguins.csv
+      hash: md5
+      md5: fe476a8c016f86659acb9e58ae98f4a9
+      size: 13478
+    - path: src/process.py
+      hash: md5
+      md5: 1f50a98c74fa110af0aeb7b8a5b4aae9
+      size: 1026
+    params:
+      params.yaml:
+        process.random_state: 10
+        process.train_size: 0.8
+    outs:
+    - path: data/processed/penguins_test.csv
+      hash: md5
+      md5: fa12aef3db8f23cb638a829c85384153
+      size: 2770
+    - path: data/processed/penguins_train.csv
+      hash: md5
+      md5: 33c6f38e75b8f3374e665c9d84e8d217
+      size: 10794
+  featurize:
+    cmd: python src/create_features.py
+    deps:
+    - path: data/processed/penguins_test.csv
+      hash: md5
+      md5: fa12aef3db8f23cb638a829c85384153
+      size: 2770
+    - path: data/processed/penguins_train.csv
+      hash: md5
+      md5: 33c6f38e75b8f3374e665c9d84e8d217
+      size: 10794
+    - path: src/create_features.py
+      hash: md5
+      md5: 75206ff028d1032a76f1c95b4fe9aa2a
+      size: 2043
+    outs:
+    - path: artifacts/feature_encoder.joblib
+      hash: md5
+      md5: 0f225ef001c43ac3e3f0524581e7d5f8
+      size: 1143
+    - path: artifacts/label_encoder.joblib
+      hash: md5
+      md5: 7a9c0a9f8477cb5bca9cf0f029b4c446
+      size: 542
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 4e50312c36280d3a8ddc2c83fc4927d8
+      size: 2641
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: de892a289a6e6c5ec0cc638cd802d30c
+      size: 10304
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 4e50312c36280d3a8ddc2c83fc4927d8
+      size: 2641
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: de892a289a6e6c5ec0cc638cd802d30c
+      size: 10304
+    - path: src/train.py
+      hash: md5
+      md5: 5505c971aa4632e2b5a5390974e52e4e
+      size: 1191
+    params:
+      params.yaml:
+        train.n_neighbors: 5
+        train.test_dataset_name: test_processed.csv
+        train.train_dataset_name: train_processed.csv
+    outs:
+    - path: artifacts/model.joblib
+      hash: md5
+      md5: ceb739eef7455e7d666b8e1d3b408baf
+      size: 47142
