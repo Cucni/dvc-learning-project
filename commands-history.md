@@ -150,4 +150,7 @@ dvc repro
 vim params.yaml
 dvc status
 dvc repro
+
+# Check if the pipeline stages are up to date (checks dependencies, outputs and parameters), without running them
+dvc repro --dry
 ```

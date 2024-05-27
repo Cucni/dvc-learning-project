@@ -101,7 +101,9 @@ Pipelines need not be linear, but they are viewed as graphs. They are implemente
 
 Pipelines are run with the command `dvc repro`. Their definition as graphs of stages can be viewed in `dvc.yaml`, and graphically can be generated with `dvc dag`.
 
-DVC understands if dependencies and outputs have changed via a "lockfile for executions", `dvc.lock`, which captures the results of the execution/reproduction. Whenever the pipeline is run with `dvc repro`, the file `dvc.lock` is written (or updated) with the hashes of all the dependencies, parameters and outputs of the pipeline. It then becomes easy for DVC to understand if something has changed by comparing the hashes. The file `dvc.lock` is then specific of a single reproduction, and it is good practice to version it with git, so that the state of the pipeline can be tracked.
+DVC understands if dependencies and outputs have changed via a "lockfile for executions", `dvc.lock`, which captures the results of the execution/reproduction. Whenever the pipeline is run with `dvc repro`, the file `dvc.lock` is written (or updated) with the hashes of all the dependencies, parameters and outputs of the pipeline. It then becomes easy for DVC to understand if something has changed by comparing the hashes. The file `dvc.lock` is then specific of a single reproduction, and it is good practice to version it with git, so that the state of the pipeline can be tracked. Remark: the `dvc.lock` file effectively tracks all the dependencies, outputs and parameters of pipeline stages by storing their hashes and keeping copies in the cache (see next itme), even when these are not explicitly added to tracking using `dvc add`.
+
+DVC also keeps a cache of executions, so that if some dependency is reverted back to a previous version after a change, the results of the execution with `dvc repro` can be pulled from the cache, saving even more executions.
 
 All of this affords the following:
 * a pipeline can be reproduced with a single command (`dvc repro`) that runs the various stages in the correct order
