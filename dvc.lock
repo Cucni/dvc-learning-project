@@ -73,20 +73,20 @@ stages:
       size: 1191
     params:
       params.yaml:
-        train.n_neighbors: 5
+        train.n_neighbors: 7
         train.test_dataset_name: test_processed.csv
         train.train_dataset_name: train_processed.csv
     outs:
     - path: artifacts/model.joblib
       hash: md5
-      md5: ceb739eef7455e7d666b8e1d3b408baf
+      md5: 968f20822d1e2392e52b501b1e28b6c9
       size: 47142
   evaluate:
     cmd: python src/evaluate.py
     deps:
     - path: artifacts/model.joblib
       hash: md5
-      md5: ceb739eef7455e7d666b8e1d3b408baf
+      md5: 968f20822d1e2392e52b501b1e28b6c9
       size: 47142
     - path: data/processed/test_processed.csv
       hash: md5
@@ -102,6 +102,6 @@ stages:
     outs:
     - path: eval
       hash: md5
-      md5: 47ccfc065f025fce793a2b4ab81564a0.dir
-      size: 80426
+      md5: 170a845872bfc6dd7195955044493b92.dir
+      size: 75272
       nfiles: 8
