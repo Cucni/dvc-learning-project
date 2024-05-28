@@ -33,3 +33,37 @@ stages:
     - train.train_dataset_name
     outs:
     - artifacts/model.joblib
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+    - artifacts/model.joblib
+    - data/processed/test_processed.csv
+    - src/evaluate.py
+    params:
+    - evaluate.test_dataset_name
+    outs:
+    - eval
+metrics:
+- eval/metrics.json
+plots:
+- eval/plots/metrics:
+    x: step
+- eval/plots/images
+- eval/plots/sklearn/DVC confusion matrix.json:
+    template: confusion
+    x: actual
+    y: predicted
+    title: Confusion Matrix
+    x_label: True Label
+    y_label: Predicted Label
+- eval/plots/sklearn/DVC ROC curve.json:
+    template: simple
+    x: fpr
+    y: tpr
+    title: Receiver operating characteristic (ROC)
+    x_label: False Positive Rate
+    y_label: True Positive Rate
+- eval/plots/custom/feature importance.json:
+    template: bar_horizontal
+    x: feature_importance
+    y: feature_names

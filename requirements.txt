@@ -1,5 +1,7 @@
+dvclive~=3.46.0
 dvc~=3.50.2
 hvplot~=0.10.0
+matplotlib~=3.9.0
 numpy~=1.26.4
 pandas~=2.2.2
 scikit-learn~=1.5.0
