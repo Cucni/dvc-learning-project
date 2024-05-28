@@ -125,3 +125,30 @@ The main feature of DVC is to efficiently coordinate remote storage for data wit
 
 
 Note that the functionalities of `import-url` have two applications: one is to work with remotes, the other is to manage "external data dependencies", which means files from external locations that we want to track in the repository. While the pull mechanism may be similar for the two use cases, we never push to external data dependencies that are not remote storages.
+
+## Metrics, plots and parameters
+
+After data versioning and pipeline management, a third functionality that DVC provides is the ability to log metrics, plots, parameters and other outputs of model evaluations, and to compare these between different executions.
+
+The library used for this is DVC Live. DVC Live provides functions to log metrics, plots and parameters that have to be called in the python scripts in order to capture the desired outputs. The outputs are logged and stored in local folders, and it is then possibe to retrieve this information with the DVC CLI.
+
+To do proper tracking, you write an evaluation script, in which you instantiate a DVC Live context manager and inside that run model evaluation and log metrics, plots and parameters. Then for each execution, these quantities will be logged. Note that dvclive has helper modules for the most common ML frameworks, for example it has a log_sklearn_plot with which you can directly create and log the "metrics plot" that sklearn ships with (confusion matrix, ROC-AUC curve, precision-recall curve, etc.). You can also log plots that you create otherwise.
+
+DVC Live saves the metrics and plots in a specific folder (that we generally want to gitignore). These outputs will be logged when you execute the script from command line directly. However, it is wise to add the evaluation script to your DVC pipeline by adding it as a stage. In this case its outputs (metrics and plots) will be tracked by hash in dvc.lock similarly to any other output.
+
+When a tracked evaluation stage is reproduced, we can consult metrics and plots with the commands `dvc metrics` and `dvc plots` (and checking the HTML file this produces). If we desire to change the model parameters (or any other dependency) we will be interested in understanding how the model metrics and plots change. We can do this by reproducing the pipeline, which computes all the outputs including metrics and plots, and then checking how the newly computed metrics and plots differ from those evaluated at HEAD (the last commit) with `dvc metrics diff` and `dvc plots diff` (and then checking the HTML file with the comparison that this last command produces). In this way we can compare whether the changes have improved the model metrics and plots.
+
+Note that metrics and plots are tracked by hash in dvc.lock, but this does not mean that their values are automatically tracked! In general we would expect that to reconstruct their values from a previous execution, we would have to reproduce the evaluation stage, with the dvc.lock only telling us if there is a mismatch. However, remember that DVC maintains a cache of executions, and it does so also for logged metrics and plots, so it is able to pull the value of the evaluation step at HEAD without re-running the pipeline.
+
+The same workflow can be used to compare metrics and plots for any two git revisions (commits, tags, branches, etc.) as long as there was a tracked execution at those revisions. For example we can run `dvc metrics diff HEAD^ HEAD^^` to compare the metrics between the two previous commits. By default the commands compute the difference between the workspace and HEAD. Similarly, `dvc params diff` is used for inspecting and comparing params between workspace and git revisions.
+
+### Workflow
+
+* implement an evaluation script in which a model is evaluated by computing metrics, producing plots and potentially other outputs
+* use the package dvclive to log metrics, plots and other outputs.
+* add the tracked evaluation stage to the DVC pipeline with `dvc stage add ...`
+* reproduce the pipeline with `dvc repro` and commit its execution snapshot by committing dvc.lock
+* consult metrics and plots using both the CLI and the generated HTML file with the commands `dvc metrics` and `dvc plots`
+* when modifying parameters, source code, data or other dependencies, compare metrics and plots between the workspace and/or git revisions to understand the effect of the changes, with `dvc metrics diff` and `dvc plots diff`
+
+Note that differently from mlflow, dvclive does not provide functionalities for logging models and other artifacts or for managing a model registry
