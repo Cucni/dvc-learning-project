@@ -154,3 +154,43 @@ dvc repro
 # Check if the pipeline stages are up to date (checks dependencies, outputs and parameters), without running them
 dvc repro --dry
 ```
+
+**Day 5**
+```
+# Implement tracking of live metrics/plots, run the script manually to produce them. Then check metrics and plots.
+(implement dvclive tracking in the evaluate.py script)
+python src/evaluate.py
+dvc metrics show
+dvc plots show
+open dvc_plots/index.html
+
+# Add the evaluation stage to the pipeline. Check implementation in dvc.yaml. Then reproduce the pipeline, and check the outputs.
+dvc stage add -n evaluate -p evaluate.test_dataset_name -d src/evaluate.py -d artifacts/model.joblib -d data/processed/test_processed.csv -o eval python src/evaluate.py
+cat dvc.yaml
+dvc repro
+dvc plots show
+open dvc_plots/index.html
+dvc metrics show
+dvc params show
+git add dvc.yaml dvc.lock .gitignore src/evaluate.py
+git commit
+
+# Change a parameter, then reproduce the pipeline and consult the changed metrics/plots/params. Commit the result (because satisfactory)
+vim params.yaml
+dvc repro
+dvc metrics show
+# The commands below show the changes between the workspace and the last commit (HEAD).
+dvc params diff
+dvc params diff --all
+dvc metrics diff
+dvc plots diff
+open dvc_plots/index.html
+git add params.yaml dvc.lock
+git commit
+
+# Consult the changes of parameters between workspace and HEAD^
+dvc params diff HEAD^
+# Consult the changes of parameters and metrics between HEAD and HEAD^
+dvc params diff HEAD^ HEAD
+dvc metrics diff HEAD^ HEAD
+```
