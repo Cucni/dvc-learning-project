@@ -4,10 +4,9 @@ import joblib
 import matplotlib.pyplot as plt
 import pandas as pd
 import yaml
+from dvclive import Live
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay, accuracy_score
-
-from dvclive import Live
 
 plt.style.use("ggplot")
 
@@ -74,7 +73,7 @@ if __name__ == "__main__":
     with open(PARAMS_FILE, "r") as params_file:
         params = yaml.safe_load(params_file)["evaluate"]
 
-    with Live(dir="eval") as live_context:
+    with Live(dir="eval", report="md") as live_context:
         evaluate(
             DATA_FOLDER / "processed" / Path(params["test_dataset_name"]),
             Path("artifacts/model.joblib"),

@@ -174,3 +174,7 @@ A similar result can be obtained by having "more manual" logging in the script, 
 A third option of course is to manually populate the file `dvc.yaml` with the paths to the metrics and plots that we want to track.
 
 Knowing this, it becomes clear that logging by using the DVC Live helpers triggers some automation when it comes to configuring the tracking of metrics and plots, but it is not intrinsically different than doing it manually or via `dvc stage add`, and using DVC Live is not strictly necessary.
+
+**Reports**
+
+One quick way to produce a summary of all the metrics/plots being tracked is with reports. It is possible to produce reports automatically using the dvclive helper `make_report`, but if using the context manager this will be triggered automatically upon context exit (but you need to specify the desired format for it to be produced). Reports can be generated in three formats: HTML, markdown or directly into notebooks. Reports are saved to the same folder where dvclive saves all other outputs, therefore generally gitignored, but the entire folder is tracked via `dvc.lock` as said above. There are CLI commands to consult them (they can be opened directly) or compare them across revisions.
