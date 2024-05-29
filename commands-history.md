@@ -194,3 +194,13 @@ dvc params diff HEAD^
 dvc params diff HEAD^ HEAD
 dvc metrics diff HEAD^ HEAD
 ```
+
+**Day 6**
+```
+# Implement report creation in markdown, reproduce the pipeline and consult the report
+(edit the evaluation script to produce reports in markdown format)
+dvc repro
+open eval/report.md
+git add src/evaluate.py dvc.lock
+git commit
+```
