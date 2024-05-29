@@ -203,4 +203,33 @@ dvc repro
 open eval/report.md
 git add src/evaluate.py dvc.lock
 git commit
+
+# Check that DVC can already view the existing workspace as an experiment run, but there is no recorded previous history as we always used `dvc repro`
+dvc exp show
+dvc exp show --only-changed
+dvc exp diff
+
+# Use exp run to run the pipeline instead of repro so that the outputs are tracked as experiment results
+# This uses the version of code, params, dependencies as of HEAD
+dvc exp run
+dvc exp show
+dvc exp show --only-changed
+
+# Edit a parameter and launch an experiment run. Then show the experiment log to see the newly created run, and consult parameters. The param was changed in the workspace, but it wasn't committed. Nevertheless we will have a permanent reference to this execution with the edited parameter in the experiment log (but NOT in git). We can make the new state persistent by committing the workplace state.
+vim params.yaml
+dvc exp run
+dvc exp show
+dvc exp show --only-changed
+dvc params diff
+dvc params diff --all
+
+# Run experiment with on-the-fly parameter change. Consult the experiment log and check that the parameter was changed in the workspace.
+dvc exp run --set-param train.n_neighbors=3
+dvc exp show --only-changed
+dvc params diff
+
+# Consult the experiment log, find the best run and use "apply" to make the workspace match that run. Then check the experiment log again for confirmation.
+dvc exp show --only-changed
+dvc exp apply sable-caps
+dvc exp show --only-changed
 ```

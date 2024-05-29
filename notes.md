@@ -178,3 +178,27 @@ Knowing this, it becomes clear that logging by using the DVC Live helpers trigge
 **Reports**
 
 One quick way to produce a summary of all the metrics/plots being tracked is with reports. It is possible to produce reports automatically using the dvclive helper `make_report`, but if using the context manager this will be triggered automatically upon context exit (but you need to specify the desired format for it to be produced). Reports can be generated in three formats: HTML, markdown or directly into notebooks. Reports are saved to the same folder where dvclive saves all other outputs, therefore generally gitignored, but the entire folder is tracked via `dvc.lock` as said above. There are CLI commands to consult them (they can be opened directly) or compare them across revisions.
+
+## Experiments
+
+An experiment is the set of trackable changes associated with the execution of a pipeline. This includes code and dependency changes and resulting artifacts like plots, charts and models. Running an experiment means to execute a DVC pipeline, to store and track its outputs and states, and to make them available for later inspection and comparison.
+
+Once we have a pipeline with implemented tracking of metrics/plots, we can run it in two ways: `dvc repro` or `dvc exp run`. The first reproduces the pipeline as explained above. The second saves the results as an experiment. This means that it links together all its pieces (data, code, params, outputs, metrics, plots) and stores their states in a log, in addition to performing the usual pipeline execution with the creation of an updated `dvc.lock`. In this way we are actually creating a new experiment from the existing pipeline, and logging one experiment run. In essence, `dvc exp run` is an experiment-specific version of `dvc repro` that in addition to running the pipeline makes it outputs accessible to the experiment tooling as described below. Of course not all pipelines need to end up in experiments: for example for pure ETL pipelines it makes sense to not have them as experiments, but just run them with `dvc repro`.
+
+Experiments are de-facto versions of ML projects, and as said they can include all the pieces of a data pipeline (and the associated objects) that can be tracked: data, code, metrics, plots, etc. They appear similarly to git commits, and indeed they are implemented as git refs that are moved around, but they are invisible to git. Whenever we do the command `dvc exp run` we create and log a new run of the experiment, using the dependencies, code and parameters present in the workspace. The results of this experiment run become accessible in the workspace and can be consulted with experiment-speficic CLI (`dvc exp`) and also with the CLI seen above for metrics/plots.
+
+The experiment run results are also saved to an experiment log with a random name (but can be named explicitly if we want). This log of experiment runs can then be consulted to see for each experiment the state of its dependencies, params, code, outputs and metrics: some of these can be consulted with their actual values (params and metrics), while the others are reported with the hashes. This allows for easy comparison of experiments' results.
+
+Note that the above has a similar workflow to mlflow.
+
+Experiments can be managed with useful tooling, which allows for example to execute a run with a prescribed set of parameters, or to bring the pipeline into the state of previous experiment run. All of these operations are meant to facilitate experimentation and comparison. However, as said before experiments are not tracked in git, which means that they will not appear in the git history. To persist an experiment in git, we can use the standard git commands to add the updated version of code, params and config files and commit them. This will make the experiment accessible in the git history, it will be permanent. Note that DVC-tracked data and artifacts will not end up there because they are tracked with DVC.
+
+Experiments provide commands that facilitate managing everything together, but we can also use the already existing tools:
+* list the existing experiments with `dvc exp list`
+* show the existing experiments (inclusive of parameters, metrics and hashes for dependencies and outputs) with `dvc exp show`
+* compare experiments with `dvc exp diff`
+* consult metrics/plots with `dvc metrics` and `dvc plots`
+* compare metrics/plots with `dvc metrics diff` and `dvc plots diff`
+* run an experiment with an on-the-fly update to a parameter with `dvc exp run --set-param <param-name>=<param-value>`
+
+As said experiments are similar to git commits, in this sense it is possible to "checkout" another experiment. The workflow is as follows: say for example that we see from `dvc exp show` that a given experiment has better metrics than the experiment currently in the workspace (this basically means that a previous "commit" has better metrics than the workspace situation; in this context "experiment" translates to the "experiment run" of mlflow jargon). Then we can obtain that experiment with `dvc exp apply <exp-name>`. This will change the current workspace so that the versions of code, dependencies and outputs match those of experiment `<exp-name>`: note that this means that the code is checked out from the associated git commit, data is checked out from the DVC version control, and outputs/metrics are checked out from the DVC cache. This is because experiments are exactly meant to wrap these pieces together into a unified interface.
