@@ -233,3 +233,61 @@ dvc exp show --only-changed
 dvc exp apply sable-caps
 dvc exp show --only-changed
 ```
+
+**Day 7**
+```
+# List files in DVC repos
+dvc list .
+dvc list . --dvc-only
+dvc list https://github.com/iterative/dataset-registry get-started
+
+# List experiments in the remote
+dvc exp list origin
+(no output: no experiment has been pushed yet)
+
+# Push the cache to the remote storage
+dvc push
+
+# Check that experiments have still not been pushed! The cache is on the remote, but experiments are special git refs so we have to push more than the cache to have them remotely (note that "origin" is the git remote)
+dvc exp list origin
+
+# Push experiments. However we are on a commit with no associated experiments, so DVC will not push anything
+dvc exp push
+> No experiments to push.
+
+# Show all the experiments, push an experiment by using its name
+dvc exp show -A
+dvc exp push origin sable-caps
+> Pushed experiment sable-caps to Git remote 'origin'.
+
+# Check remote experiments: this gives an empty output as on the git remote we are on a commit without associated experiments
+dvc exp list origin
+
+# Finally we can see the remote experiment by listing them from all commits
+dvc exp list -A origin
+> d005e19:
+>     sable-caps
+
+# Run the experiment with the committed state and then with a changed parameter. Then re-run it with the original parameter to bring the workspace in the original state
+dvc exp run
+dvc exp run --set-param prepare.random_state=42
+dvc exp run --set-param prepare.random_state=10
+# Now check that the params in the workspace coincide with the ones in the last commit (HEAD)
+dvc params diff --all
+# Show the results of the experiments including the one with random_state 42
+dvc exp show --only-changed
+# We decide that we want to persist the experiment with random_state 42, but we don't want to commit it to the current branch (perhaps we want to keep the current branch as the "stable" model). So we commit the new experiment to a new branch
+dvc exp branch drear-saga
+
+# Verify git and DVC changes between main and drear-saga-branch
+git diff drear-saga-branch
+dvc diff drear-saga-branch
+
+# Compare experiments from all branches. Will show the experiments at tip of each branch + at the current commit
+dvc exp show --only-diff --all-branches
+
+# Push the branch with the new experiment to the git remote
+git ch drear-saga-branch
+git push --set-upstream origin drear-saga-branch
+git checkout main
+```
