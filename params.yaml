@@ -1,11 +1,11 @@
 process:
   train_size: 0.8
-  random_state: 10
+  random_state: 42
 
 train:
   n_neighbors: 7
-  train_dataset_name: "train_processed.csv"
-  test_dataset_name: "test_processed.csv"
+  train_dataset_name: train_processed.csv
+  test_dataset_name: test_processed.csv
 
 evaluate:
-  test_dataset_name: "test_processed.csv"
+  test_dataset_name: test_processed.csv

@@ -233,3 +233,38 @@ dvc exp show --only-changed
 dvc exp apply sable-caps
 dvc exp show --only-changed
 ```
+
+**Day 7**
+```
+10008  dvc list .
+10017  dvc list . --dvc-only
+10009  dvc list https://github.com/iterative/dataset-registry get-started
+
+
+
+10010  dvc exp list origin
+(nothing as no exp has been pushed yet)
+
+# Push the cache
+10014  dvc push
+
+# Check that experiments have not been pushed!
+10032  dvc exp list origin
+10033  dvc exp push
+# > No experiments to push.
+# This is because we are on a commit that has no associated experiments
+
+# Show all the experiments, push an experiment by giving its name
+dvc exp show -A
+dvc exp push origin sable-caps
+# > Pushed experiment sable-caps to Git remote 'origin'.
+
+# Check remote experiments: this gives an empty output as on the remote we are on a commit without associated experiments
+dvc exp list origin
+
+# Finally we can see the remote experiment by listing them from all commits
+# dvc exp list -A origin
+d005e19:
+	sable-caps
+
+```
