@@ -227,6 +227,25 @@ Experiments stored in the cache or in the remote are still not persistent though
 
 Note however that to consult metrics, plots and experiments you must pull them first, it is not possible to consult them from a remote DVC repo. This is the use case of DVC Studio, which is a centralized location for tracking experiments with also a model registry, similar to mlflow.
 
+### Model registry
+
+The section above on sharing data, models and experiments concerns how to store and access objects to/from a remote location (git repo or DVC repo). A more granular control of model versions can be achieved with the model registry. DVC offers this through their application "DVC Studio", which is web-based. DVC studio provides a model registry in which you can:
+* register new models by pointing to artifacts in a git repository which is tracked with DVC
+* register new versions of models
+* consult model versions
+* move model versions across _stages_ (dev, stage, prod, and others you can freely create) to manage the model lifecycle
+* access model versions and their artifacts, by providing an authenticator middleman if necessary, to help with releases and CI/CD
+
+Note that DVC Studio also offers the ability to consult and compare experiment runs in a UI. There is however a difference: experiment tracking can be done entirely in the DVC CLI, with DVC Studio used only to view the results, while the model registry and management require DVC Studio (there is a CLI interface using "gto" which stands for Git Tag Ops but it does not come with DVC out of the box).
+
+The model registry is implemented via git. Together with the previous workflows, this makes the git repo the single source of truth for code, tracked objects and registered models and versions. It also makes model versioning and stage migrations accessible in the git repo and history. It works like this:
+* a registered model is a git tag placed on a commit, and also contains the pointer to a DVC-tracked object. It can have its own dedicated branch or not.
+* a model version is also a git tag placed on a commit, and also points to the DVC-tracked object that the model pointed to. In this way it is possible to navigate to this commit with git and obtain the version of the object corresponding to this "model version".
+* the stage of a registered model (such as "prod") is also a git tag placed on a commit, and also points to the DVC-tracked object that the model pointed to.
+
+Generally more models migrate to a given stage over the course of the project lifecycle. In this case the stage git tag (such as "prod") is not moved to another commit, because that would delete history. A new stage git tag is created with an incremental number, so that we can always obtain the history of which models were assigned to this stage at which point in time.
+
+For accessing model versions and their artifacts, DVC Studio implements a token management system. Basically it is possible to store credentials (say cloud storage) for remote storages in Studio, and then obtain from Studio an access token that you can use to access the model version and its artifacts from the remote storage through Studio. In this case Studio acts as a "middleman" that authenticates you for access to the remote storage. This access token can be used in the DVC CLI, in python scripts and even in CI/CD jobs to automate deployments.
 
 # Correction
 
